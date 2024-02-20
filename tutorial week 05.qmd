@@ -1,0 +1,201 @@
+---
+title: "tutorial_w05"
+author: "Chloé"
+format: html
+---
+
+```{r}
+library(tidyverse)
+```
+
+
+## Filter
+
+```{r}
+glot_status <- readRDS("C:/Users/Chloé/Desktop/Données Rstudio/Data Analysis 2024/dal-2024/data/coretta2022/glot_status.rds")
+
+glot_status
+```
+
+```{r}
+extinct <- glot_status |>
+  filter(status == "extinct")
+
+extinct
+```
+
+> Allows the data to be filtered by a specific value of a column using logical operators.
+
+```{r}
+not_extinct <- glot_status |>
+  filter(status != "extinct")
+
+not_extinct
+```
+
+```{r}
+south_america <- glot_status |>
+  filter(status != "extinct", Macroarea == "South America")
+
+south_america
+```
+
+> The filtering can be done using more than one argument. Combining statements will only give rows where both conditions apply.
+
+```{r}
+glot_status |>
+  filter(status == "not_endangered", Macroarea != "Eurasia")
+```
+
+```{r}
+global_south <- glot_status |>
+  filter(
+    Macroarea %in% c("Africa", "Australia", "Papunesia", "South America"),
+    status %in% c("threatened", "shifting", "moribund", "nearly_extinct")
+  )
+
+global_south
+```
+
+## Bar charts (geom_bar())
+
+```{r}
+global_south |>
+  ggplot(aes(x = status)) +
+  geom_bar()
+```
+
+> Only the x-axis has to be precised in the code with the aes((x = ...)) function.
+
+> The number of languages in the Global South by endangered status is shown as a bar chart in Figure 1. Among the languages that are endangered, the majority are threatened or shifting.
+
+## Mutate To change existing columns or create new columns.
+
+```{r}
+glot_status <- glot_status |>
+  mutate(
+    Status = str_remove(Code_ID, "aes-")
+  )
+```
+
+```{r}
+glot_status |>
+  ggplot(aes(x = Status)) +
+  geom_bar()
+```
+
+> But something is not quite right… The order of the levels of Status does not match the order that makes sense (from least to most endangered)! Why?
+
+**A factor vector (or column) is a vector that contains a list of values (called levels) from a closed set. The levels of a factor are ordered alphabetically by default. A vector/column can be mutated into a factor column with the as.factor() function.**
+
+
+```{r}
+glot_status <- glot_status |>
+  mutate(
+    Status = as.factor(Status)
+  )
+
+levels(glot_status$Status)
+```
+
+> The levels() functions returns the levels of a factor column in the order they are stored in the factor: by default the order is alphabetical
+
+```{r}
+glot_status <- glot_status |>
+  mutate(
+    Status = factor(Status, levels = c("not_endangered", "threatened", "shifting", "moribund", "nearly_extinct", "extinct"))
+  )
+
+levels(glot_status$Status)
+```
+
+>What if we want the levels of Status to be ordered in a more logical manner: not_endangered, threatened, shifting, moribund, nearly_extinct and extinct? Easy! We can use the factor() function instead of as.factor() and specify the levels and their order.
+
+```{r}
+glot_status |>
+  ggplot(aes(x = Status)) +
+  geom_bar()
+```
+
+
+## Stacked bar charts
+
+```{r}
+global_south |>
+  ggplot(aes(x = Macroarea, fill = status)) +
+  geom_bar()
+```
+
+> Figure 4 shows the number of languages by geographic macro-area, subdivided by endangerment status. Africa, Eurasia and Papunesia have substantially more languages than the other areas.
+
+
+## Filled stacked bar charts
+
+When the number of values in different rows is different, we can use proportions instead of raw counts in order to grasp the differences between bars. You could calculate the proportions yourself, but there is a quicker way: using the position argument in geom_bar().
+
+```{r}
+global_south |>
+ggplot(aes(x = Macroarea, fill = status)) +
+  geom_bar(position = "fill")
+```
+
+```{r}
+global_south |>
+ggplot(aes(x = Macroarea, fill = status)) +
+  geom_bar(position = "fill") +
+  labs(
+    x = "Macro-area",
+    y = "Proportion",
+    fill = "Endangerement"
+  )
+```
+
+> Figure 6 shows proportions of languages by endangerment status for each macro-area. Australia, South and North America have a substantially higher proportion of extinct languages than the other areas. These areas also have a higher proportion of near extinct languages. On the other hand, Africa has the greatest proportion of non-endangered languages followed by Papunesia and Eurasia, while North and South America are among the areas with the lower proportion, together with Australia which has the lowest.
+
+##Faceting and panels
+
+```{r}
+polite = read_csv("data/winter2020/polite.csv")
+```
+```{r}
+polite |>
+ggplot(aes(x = f0mn, y =H1H2, colour = gender)) +
+  geom_point() +
+  labs(
+    x = "f0mn",
+    y = "H1H2",
+    colour = "Gender"
+  )
+```
+
+
+**Faceting a plot allows to split the plot into multiple panels, arranged in rows and columns, based on one or more variables. To facet a plot, use the facet_grid() function. The syntax is a bit strange. You can specify rows of panels with the rows argument and columns of panels with cols argument, but you have to include column names inside vars(), like this:**
+
+```{r}
+polite |>
+  ggplot(aes(f0mn, H1H2, colour = gender)) +
+  geom_point() +
+  facet_grid(cols = vars(musicstudent)) +
+  labs(
+    x = "Mean f0 (Hz)",
+    y = "H1-H2 difference (dB)",
+    colour = "Gender"
+  )
+```
+
+> Figure 8 shows mean f0 and H1-H2 difference as a scatter plot. The two panels indicate whether the participant was a student of music. Within each panel, the participant’s gender is represented by colour (red for female and blue for male). Male participants tend to have higher H1-H2 differences and lower mean f0 than females. From the plot it can also be seen that there is greater variability in H1-H2 difference in female music students compared to female non-music participants. Within each group of gender by music student there does not seem to be any specific relation between mean f0 and H1-H2 difference.
+
+
+```{r}
+polite |>
+  ggplot(aes(f0mn, H1H2, colour = gender)) +
+  geom_point() +
+  facet_grid(cols = vars(musicstudent), rows = vars(attitude)) +
+  labs(
+     x = "Mean f0 (Hz)",
+    y = "H1-H2 difference (dB)",
+    colour = "Gender"
+  )
+```
+
+> Figure 9 shows mean f0 and H1-H2 difference as a scatter plot. The two vertical panels indicate whether the participant was a student of music. The two horizontal panels indicate whether the participant were polite or informal in their responses. Within each panel, the participant’s gender is represented by colour (red for female and blue for male). Male participants tend to have higher H1-H2 differences and lower mean f0 than females. From the plot it can also be seen that there is greater variability in H1-H2 difference in female music students compared to female non-music participants. Within each group of gender by music student there does not seem to be any specific relation between mean f0 and H1-H2 difference.

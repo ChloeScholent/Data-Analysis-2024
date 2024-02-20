@@ -1,0 +1,45 @@
+---
+title: "Tutorial week 03"
+author: "Chloé"
+format: html
+---
+
+## Opening files
+
+```{r}
+library(readr)
+library(readxl)
+```
+
+
+### Open .csv file
+```{r}
+shallow <- read_csv("data/song2020/shallow.csv")
+```
+
+### Open excel file
+```{r}
+relatives <- read_excel("data/los2023/relatives.xlsx")
+relatives_2 <- read_excel("data/los2023/relatives.xlsx", sheet = 2)
+```
+
+
+### Open .rds file
+
+```{r}
+glot_status <- readRDS("data/coretta2022/glot_status.rds")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+

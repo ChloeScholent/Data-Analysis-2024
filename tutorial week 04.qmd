@@ -1,0 +1,72 @@
+---
+title: "tutorial_week04"
+author: "Chloé"
+format: html
+---
+
+## Attach packages
+
+```{r}
+#| label: setup
+library(tidyverse)
+```
+
+## Read data
+
+```{r}
+#| label: read-data
+
+polite <- read_csv("data tutorial week_03/winter2020/polite.csv")
+
+glot_status <- readRDS("data tutorial week_03/coretta2022/glot_status.rds")
+```
+
+## Making plots
+
+```{r}
+#| label: first ggplot
+ggplot(
+  polite,
+  aes(f0mn, H1H2)
+) +
+  geom_point()
+```
+
+
+```{r}
+polite |>
+  ggplot(aes(f0mn, H1H2, colour = gender)) +
+  geom_point()
+```
+
+
+```{r}
+polite |>
+  ggplot(aes(f0mn, H1H2, colour = gender)) +
+  geom_point() +
+  scale_color_brewer(type = "qual")
+```
+
+
+```{r}
+polite |>
+  ggplot(aes(f0mn, H1H2, colour = gender)) +
+  geom_point() +
+  scale_color_viridis_d(option = "B")
+```
+
+
+```{r}
+polite |>
+  ggplot(aes(f0mn, H1H2, colour = gender)) +
+  geom_point() +
+  labs(
+    x = "Mean f0 (Hz)",
+    y = "H1-H2 difference (dB)",
+    colour = "Gender"
+  )
+```
+
+
+
+

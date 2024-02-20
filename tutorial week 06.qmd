@@ -1,0 +1,175 @@
+---
+title: "Tutorial week 06"
+author: "Chloé"
+format: html
+---
+
+```{r}
+library(tidyverse)
+```
+
+## Summary measures
+
+```{r}
+shallow = read_csv("data/song2020/shallow.csv")
+
+shallow
+```
+
+
+```{r}
+# round the mean and SD
+summarise(shallow, RT_mean = round(mean(RT)), RT_sd = round(sd(RT)))
+```
+> Here, we look at the mean of the time column with the `mean()` function, and the standard deviation with the `sd()` function. Both functions are rounded to the nearest integer using the `round()` function.
+
+```{r}
+summarise(
+  shallow,
+  RT_mean = round(mean(RT)), RT_sd = round(sd(RT)), RT_median = round(median(RT)),
+  RT_min = round(min(RT)), RT_max = round(max(RT))
+)
+```
+
+> Reaction times are on average 867 ms long (SD = 293 ms), with values ranging from 0 to 1994 ms.
+
+
+**If there are NA values, the "na.rm = TRUE" argument can be used within a function.**
+
+
+## Density plots (geom_density())
+
+```{r}
+shallow |>
+  ggplot(aes(x = RT)) +
+  geom_density()
+```
+
+```{r}
+shallow |>
+  ggplot(aes(RT)) +
+  geom_density() +
+  geom_rug(alpha = 0.1)
+```
+
+> the `geom_rug()` function adds a rug of data intensity at the bottom of the plot. The alpha argument adjusts the opacity of the plot. With really dense rug plots, adding a very light alpha highligths the densest regions as the blackest. We can observe that the distribution is not symmetric around the highest density point of the density plot, which explains also the difference between the mean and the median of the plot.
+
+
+##Count occurences##
+
+Let's count the number of correct and incorrect trials in the `shallow` data frame.
+
+The function `count()` takes the name of a tibble and the name of the column you want to count values in.
+
+```{r}
+count(shallow, ACC)
+```
+**OR**
+
+```{r}
+shallow |> count(ACC)
+```
+
+
+```{r}
+count(shallow, ACC, Group)
+```
+
+
+There are more L2 trials than L1 trials, so we can use proportions again.
+We can calculate the proportion of correct and incorrect trials using a chain of functions:
+
+```{r}
+shallow |>
+  add_count(Group, name = "total") |>
+  count(Group, ACC, total) |>
+  mutate(
+    prop = round(n / total, 2)
+  )
+```
+
+  which is equivalent to the following steps:
+
+```{r}
+shallow_total <- shallow |>
+  add_count(Group, name = "total")
+
+shallow_count <- shallow_total |>
+  count(Group, ACC, total) 
+
+shallow_prop <- shallow_count |>
+  mutate(
+    prop = round(n / total, 2)
+  )
+```
+
+
+## Grouping data
+
+Grouping data to get summary measures for one column depending on different values of another one. The `group_by()`function (taking at least two arguments: the df and the column) can be used along with `summarise()`.
+
+```{r}
+group_by(shallow, Group) |>
+  summarise(
+    RT_mean = round(mean(RT)),
+    RT_sd = round(sd(RT))
+  )
+```
+
+
+## Log-transformation
+
+Look again at the density plot of reaction times. Can you see the long tail of the density line on the right side of it?
+
+Reaction times are numeric and continuous, but can only be positive! Because of this, usually the distribution of reaction times looks like the one in plot: a big lump on the left side and a long tail to the right.
+
+It is common practice to transform variables that can only tale positive values to reduce the asymmetry in the distribution.
+
+A common transformation is to calculate the logarithm of the values. You can calculate the logarithm (or log) of a number in R using the `log()` function. Calculating the logs of a variable is known as a log-transformation.
+
+
+```{r}
+shallow |>
+  ggplot(aes(x = log(RT))) +
+  geom_density(fill = "#800000", alpha = 0.7) +
+  geom_rug(alpha = 0.1)
+```
+
+
+## Practice
+
+```{r}
+gestures = read_csv("data/cameron2020/gestures.csv")
+```
+```{r}
+gestures |>
+  summarise(Count_med = median(count, na.rm = TRUE), 
+            Count_max = max(count, na.rm =TRUE),
+            Count_min = min(count, na.rm = TRUE),
+            Count_range = Count_max - Count_min
+              )
+```
+
+```{r}
+group_by(gestures, months) |>
+  summarise(Count_mean = mean(count, na.rm = TRUE), 
+            Count_max = max(count, na.rm =TRUE),
+            Count_min = min(count, na.rm = TRUE),
+            Count_range = Count_max - Count_min
+            )
+```
+
+```{r}
+gestures |>
+  group_by(dyad) |>
+  summarise(Count_tot = sum(count))
+```
+
+```{r}
+gestures |>
+  distinct(background, dyad) |>
+  count(background)
+```
+
+
+
